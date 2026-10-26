@@ -46,14 +46,17 @@ ZStack(alignment: .bottom) {
 
 ## 一顆真的地球
 
-原版上方的地球是衛星圖。我一開始以為要找一張地球的圖片，後來發現 MapKit 就做得到：用衛星圖模式，把攝影機拉到 2,600 萬公尺高，地圖就會變成一顆 3D 地球。
+原版上方的地球是衛星圖。我一開始以為要找一張地球的圖片，後來發現 MapKit 就做得到：用衛星圖模式，把攝影機拉到 2,200 萬公尺高、對準北美，地圖就會變成一顆 3D 地球。
 
 ```swift
 Map(initialPosition: .camera(MapCamera(
-        centerCoordinate: CLLocationCoordinate2D(latitude: 38, longitude: -175),
-        distance: 26_000_000, heading: 0, pitch: 0))) {
-    MapPolyline(coordinates: arc(from: from, to: to))
-        .stroke(Theme.route, lineWidth: 4)
+        centerCoordinate: CLLocationCoordinate2D(latitude: 40, longitude: -98),
+        distance: 22_000_000, heading: 0, pitch: 0)),
+    interactionModes: []) {
+    ForEach(flights) { flight in
+        MapPolyline(coordinates: arc(from: flight.from.coordinate, to: flight.to.coordinate))
+            .stroke(flight.isInAir ? Theme.past : Theme.route, lineWidth: 3)
+    }
 }
 .mapStyle(.imagery(elevation: .realistic))
 ```
@@ -75,8 +78,6 @@ GeometryReader { geo in
 原版的航線有兩種顏色：正在飛的那一班是紫色，還沒起飛的是藍色。我用 `flight.isInAir` 判斷，一行三元運算子就分好了。
 
 ## 一列航班的細節
-
-![](pic/detail.png)
 
 卡片裡的每一列都是同一個 `FlightRow`，用 property 傳入一班航班：
 
@@ -101,7 +102,7 @@ struct FlightRow: View {
 
 - **「Tokyo to San Francisco」**：城市名加粗，中間的 to 不加粗。用三個 `Text` 用 `+` 拼起來，每一段設定自己的粗細。
 - **時間的顏色**：飛行中的那一班，時間是綠色；還沒起飛的是黑色，前面的箭頭圓圈是灰色。
-- **轉機提醒**：「55m at NRT」的 55m 是橘色加粗，右邊有一個跑步的小人和「Tight」，提醒轉機時間很趕。
+- **轉機提醒**：「55m at JFK」的 55m 是橘色加粗，右邊有一個跑步的小人和「Tight」，提醒轉機時間很趕。
 
 ## 不使用航空公司的標誌
 
@@ -121,7 +122,7 @@ struct TailFin: Shape {
 }
 ```
 
-航班編號和時間也都是示範用的假資料。路線照原版截圖排：東京飛舊金山（飛行中）、舊金山飛紐約、紐約飛洛杉磯，再一班舊金山飛紐約，這樣兩張圖放在一起比較好對照。
+尾翼的紅藍塗裝是一張 Asset 圖片，再用 `.clipShape(TailFin())` 裁成這個形狀，順便完成「圖片裁成自訂形狀」的加分項。航班編號和時間也都是示範用的假資料。路線照原版截圖排：東京飛舊金山（飛行中）、舊金山飛紐約、紐約飛洛杉磯，再一班舊金山飛紐約，這樣兩張圖放在一起比較好對照。
 
 ## 深色模式
 
